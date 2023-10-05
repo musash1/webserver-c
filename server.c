@@ -11,9 +11,42 @@
 #define PORT 8080
 #define SA struct sockaddr
 
-const char * parseRequest(char* buff) {
+enum HttpRequestType { GET, POST, PUT, DELETE };
 
-  return "hls";
+const static struct {
+  enum HttpRequestType val;
+  const char *str;
+} conversion [] = {
+  {GET, "GET"},
+  {POST, "POST"},
+  {PUT, "PUT"},
+  {DELETE, "DELETE"}
+};
+
+struct Message {
+  int messageId;
+  char *str;
+};
+
+struct Message getMessages() {
+  
+}
+
+const char * parseRequest(char* buff) {
+  char *method = strtok(buff, " ");
+  enum HttpRequestType req;
+  for (int i = 0; i < sizeof(conversion) / sizeof(conversion[0]); i++) {
+    if (!strcmp(method, conversion[i].str)) {
+      req = conversion[i].val;
+    }
+  }
+  switch (req) {
+    case GET:
+      getMessages();
+      break;
+    default: break;
+  }
+  return method;
 }
 
 void func(int connfd) {
@@ -24,7 +57,6 @@ void func(int connfd) {
     bzero(buff, MAX);
 
     read(connfd, buff, sizeof(buff));
-    printf("From client: %s\nTo client: ", buff);
     parseRequest(buff);
     bzero(buff, MAX);
     n = 0;
