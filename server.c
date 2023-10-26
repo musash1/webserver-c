@@ -29,10 +29,13 @@ struct Message {
 };
 
 struct Message getMessages() {
-  
+  struct Message message;
+  message.messageId = 1;
+  message.str = "Hello, Man";
+  return message;  
 }
 
-const char * parseRequest(char* buff) {
+struct Message parseRequest(char* buff) {
   char *method = strtok(buff, " ");
   enum HttpRequestType req;
   for (int i = 0; i < sizeof(conversion) / sizeof(conversion[0]); i++) {
@@ -40,13 +43,14 @@ const char * parseRequest(char* buff) {
       req = conversion[i].val;
     }
   }
+  struct Message returnMethod;
   switch (req) {
     case GET:
-      getMessages();
+      returnMethod = getMessages();
       break;
     default: break;
   }
-  return method;
+  return returnMethod;
 }
 
 void func(int connfd) {
@@ -57,7 +61,11 @@ void func(int connfd) {
     bzero(buff, MAX);
 
     read(connfd, buff, sizeof(buff));
-    parseRequest(buff);
+    struct Message message = parseRequest(buff);
+    
+    printf("%s", message.str);
+    char *header = "HTTP/1.0 200 OK\r\nContent-Type: text/html; charset=UTF-8\r\nContent-Length: 55\r\nAccept-Ranges: bytes\r\nConnection: close\r\n\r\n<html><head></head><body>Hello World!</body></html>\r\n";
+    send(connfd, header, strlen(header), 0);
     bzero(buff, MAX);
     n = 0;
     while ((buff[n++] = getchar()) != '\n');
